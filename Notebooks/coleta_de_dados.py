@@ -161,10 +161,10 @@ df_atividade.head()
 """#Tratamento dos Dados"""
 
 # Importando os Dados
-
-import sqlite3
+import sqlite3 as sl3
 import pandas as pd
 
+# Estabelecendo a Conexão
 conn = sqlite3.connect( "database.db" )
 
 consulta_atividade = """
@@ -235,26 +235,62 @@ print("Prob - Aurora: {:.2%} - Nova: {:.2%} - Star {:.2%}".format(previsao[0][0]
 
 #Importando a biblioteca Gradio
 import gradio as gr
+import numpy as np
+
+# Função de previsão
+def predict(*args):
+  X_novo = np.array([args]).reshape(1, -1)
+  previsao = modelo_treinado.predict_proba(X_novo)
+
+  return{"Aurora":previsao[0][0], "Nova":previsao[0][1], "Star":previsao[0][2]}
+
+print("Prob - Aurora: {:.2%} - Nova: {:.2%} - Star {:.2%}".format(previsao[0][0], previsao[0][1], previsao[0][2]))
 
 #Comando para criar blocos
-with gr.Blocks() as demo:
+with gr.Blocks() as painel_previsoes:
   #Título do painel
   gr.Markdown(""" # Propensão de Compra """)
 
   with gr.Row():
     with gr.Column():
-      gr.Markdown(""" # Coluna 1 """)
+      gr.Markdown(""" # Atributos do Cliente """)
+      year                    = gr.Slider(label="year", minimum=2017, maximum=2018, step=1, randomize=True)
+      month                   = gr.Slider(label="month", minimum=1, maximum=12, step=1, randomize=True)
+      flights_booked          = gr.Slider(label="flights_booked", minimum=0, maximum=21, step=1, randomize=True)
+      flights_with_companions = gr.Slider(label="flights_with_companion", minimum=0, maximum=11, step=1, randomize=True)
+      total_flights           = gr.Slider(label="total_flights", minimum=0, maximum=32, step=1, randomize=True)
+      distance                = gr.Slider(label="distance", minimum=0, maximum=6293, step=1, randomize=True)
+      points_accumulated      = gr.Slider(label="points_accumulated", minimum=0.00, maximum=676.50, step=0.1, randomize=True)
+      salary                  = gr.Slider(label="salary", minimum=58486.00, maximum=407228.00, step=0.1, randomize=True)
+      clv                     = gr.Slider(label="clv", minimum=2119.89, maximum=83325.38, step=0.1, randomize=True)
 
       with gr.Row():
-        gr.Markdown(""" # Linha 1 """)
+
+        with gr.Row():
+          gr.Markdown(""" # Botão de Previsão """)
+          predict_btn = gr.Button(value="Previsao")
 
     with gr.Column():
-      gr.Markdown(""" # Coluna 2 """)
+      gr.Markdown(""" # Propensão de Compra do Cliente """)
+      label = gr.Label()
 
 #Botão Predict
-#predict_btn.click()
+  predict_btn.click(
+    fn=predict,
+    inputs=[
+        year,
+        month,
+        flights_booked,
+        flights_with_companions,
+        total_flights,
+        distance,
+        points_accumulated,
+        salary,
+        clv
+        ],
+    outputs=[label])
 
-demo.launch(debug=True, share=False)
+painel_previsoes.launch(debug=True, share=False)#share=True)
 
 """#Exercícios Aula 2 - SQL e Python"""
 
